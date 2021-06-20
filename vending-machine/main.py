@@ -13,8 +13,11 @@ from time import sleep
 # ---COMPONENT SETUP ---
 
 LED_PINS = [11, 12, 13] #R, G, B
+
+'''
 SENSOR_TRIGGER = 18
 SENSOR_ECHO = 24
+'''
 
 # ------ LCD SETUP ------
 PCF8574_address = 0x27 
@@ -58,8 +61,10 @@ def setup():
     pwmBlue.start(0)
 
     #sensor 
+    '''
     GPIO.setup(SENSOR_TRIGGER, GPIO.OUT)
     GPIO.setup(SENSOR_ECHO, GPIO.IN)
+    '''
 
     #lcd
     mcp.output(3,1)     # turn on LCD backlight
@@ -70,9 +75,11 @@ def setColor(r_val,g_val,b_val):
     pwmGreen.ChangeDutyCycle(g_val)   
     pwmBlue.ChangeDutyCycle(b_val)
 
+'''
 def checkCoins(count):
     if GPIO.input(SENSOR_ECHO) == 1:
         count+=1
+'''
 
 def loop():
     # STAGE 1:
@@ -80,9 +87,11 @@ def loop():
     while stage_1:
         lcd.setCursor(0,0)
         lcd.message( 'Please insert 50 cents')
+        '''
         checkCoins(count)
         if count == 2:
             stage_1 = False
+        '''
         sleep(1)
     
     # STAGE 2:
