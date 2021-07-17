@@ -108,6 +108,8 @@ def loop():
     
     count=0
     distance=0
+    noCodeEntered = True
+    codeEntered =''
 
     #set up key pad
     keypad = Keypad.Keypad(keys,rowsPins,colsPins,ROWS,COLS)
@@ -133,15 +135,39 @@ def loop():
     
     # ------------STAGE 2: ---------------
     print("Entering stage 2: Recieving code")
-    setColor(6,100,55) #green light  
+    setColor(100,0,0) #green light
+    lcd.clear()
 
     while stage_2:
-        lcd.setCursor(0,0)
-        lcd.message("Please enter a"+'\n'+"code")
+        if (noCodeEntered):
+            lcd.setCursor(0,0)
+            lcd.message("Please enter a "+'\n'+"code")
         
         key = keypad.getKey()      
         if(key != keypad.NULL):
-            print ("You Pressed Key : %c "%(key))
+            noCodeEntered = False
+            if (key == '*'):
+                codeEntered = codeEntered[:-1]
+            
+            else:
+                codeEntered += key
+            print ("codeEntered: ", codeEntered)
+            
+            lcd.clear()
+            lcd.message("Code: " + codeEntered)
+        
+        if (codeEntered == CODE_1 or codeEntered == CODE_2):
+            stage_2= False
+            print("Stage 2 completed")
+    
+    # ------------STAGE 3: ---------------
+    print("Entering stage 3: Dispensing")
+    lcd.clear()
+    
+    while stage_3:
+        lcd.setCursor(0,0)
+        lcd.message("Thank you for"+'\n'+"purchasing!")
+    
 
 
 def destroy():
