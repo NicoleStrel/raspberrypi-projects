@@ -108,6 +108,10 @@ def loop():
     
     count=0
     distance=0
+
+    #set up key pad
+    keypad = Keypad.Keypad(keys,rowsPins,colsPins,ROWS,COLS)
+    keypad.setDebounceTime(50)   
     
     # ------------STAGE 1: ---------------
     print("Entering stage 1: Recieving coins")
@@ -129,11 +133,7 @@ def loop():
     
     # ------------STAGE 2: ---------------
     print("Entering stage 2: Recieving code")
-    setColor(6,100,55) #green light
-
-    #set up key pad
-    keypad = Keypad.Keypad(keys,rowsPins,colsPins,ROWS,COLS)
-    keypad.setDebounceTime(50)     
+    setColor(6,100,55) #green light  
 
     while stage_2:
         lcd.setCursor(0,0)
