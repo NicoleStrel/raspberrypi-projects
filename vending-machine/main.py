@@ -19,7 +19,7 @@ SENSOR_TRIGGER = 16
 SENSOR_ECHO = 18
 MAX_DISTANCE = 220 
 timeOut = MAX_DISTANCE*60 
-COIN_DISTANCE = 3 #cm
+COIN_DISTANCE = 5 #cm
 
 # ------ LCD SETUP ------
 PCF8574_address = 0x27 
@@ -90,6 +90,7 @@ def getSonarDistance():
     pulseTime = pulseIn(SENSOR_ECHO,GPIO.HIGH,timeOut)
     distance = pulseTime * 340.0 / 2.0 / 10000.0     # sound speed 340m/s 
     print('distance: ', distance)
+    return distance
 
 
 def loop():
@@ -98,6 +99,7 @@ def loop():
     stage_3= True #motors turn to release the item
     
     count=0
+    distance=0
     
     # ------------STAGE 1: ---------------
     print("Entering stage 1: Recieving coins")
@@ -108,13 +110,16 @@ def loop():
         lcd.message("Please insert 50"+'\n'+"cents")
         
         distance = getSonarDistance()
-
-        if distance < COIN_DISTANCE:
+        
+        if distance != 0 and distance < COIN_DISTANCE:
             count+=1
 
         if count == 2:
             stage_1 = False
             print("Stage 1 completed")
+            
+        time.sleep(0.5)
+
     
     # ------------STAGE 2: ---------------
     print("Entering stage 2: Recieving code")
