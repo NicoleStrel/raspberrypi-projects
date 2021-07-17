@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 from PCF8574 import PCF8574_GPIO
 from Adafruit_LCD1602 import Adafruit_CharLCD
 
-from time import sleep
+import time
 
 
 # ---COMPONENT SETUP ---
@@ -17,7 +17,9 @@ LED_PINS = [11, 12, 13] #R, G, B
 
 SENSOR_TRIGGER = 16
 SENSOR_ECHO = 18
-
+MAX_DISTANCE = 220 
+timeOut = MAX_DISTANCE*60 
+COIN_DISTANCE = 3 #cm
 
 # ------ LCD SETUP ------
 PCF8574_address = 0x27 
@@ -55,7 +57,6 @@ def setup():
     pwmBlue.start(0)
 
     #sensor 
-    
     GPIO.setup(SENSOR_TRIGGER, GPIO.OUT)
     GPIO.setup(SENSOR_ECHO, GPIO.IN)
     
@@ -70,13 +71,25 @@ def setColor(r_val,g_val,b_val):
     pwmGreen.ChangeDutyCycle(g_val)   
     pwmBlue.ChangeDutyCycle(b_val)
 
+def pulseIn(pin,level,timeOut): # obtain pulse time of a pin under timeOut
+    t0 = time.time()
+    while(GPIO.input(pin) != level):
+        if((time.time() - t0) > timeOut*0.000001):
+            return 0
+    t0 = time.time()
+    while(GPIO.input(pin) == level):
+        if((time.time() - t0) > timeOut*0.000001):
+            return 0
+    pulseTime = (time.time() - t0)*1000000
+    return pulseTime
 
-def checkCoins(count):
-    long pingTime;
-    float distance;
-    GPIO.output(SENSOR_TRIGGER,GPIO.HIGH)
-    if distance == 100:
-        count+=1
+def getSonarDistance():
+    GPIO.output(SENSOR_TRIGGER,GPIO.HIGH) 
+    time.sleep(0.00001)     # 10us
+    GPIO.output(SENSOR_TRIGGER,GPIO.LOW)
+    pulseTime = pulseIn(SENSOR_ECHO,GPIO.HIGH,timeOut)
+    distance = pulseTime * 340.0 / 2.0 / 10000.0     # sound speed 340m/s 
+    print('distance: ', distance)
 
 
 def loop():
@@ -87,19 +100,24 @@ def loop():
     count=0
     
     # ------------STAGE 1: ---------------
+    print("Entering stage 1: Recieving coins")
     setColor(0,100,100) # red light
     
     while stage_1:
-        #print ("looping")
         lcd.setCursor(0,0)
         lcd.message("Please insert 50"+'\n'+"cents")
         
-        checkCoins(count)
+        distance = getSonarDistance()
+
+        if distance < COIN_DISTANCE:
+            count+=1
+
         if count == 2:
             stage_1 = False
-        #sleep(1)
+            print("Stage 1 completed")
     
-    # STAGE 2:
+    # ------------STAGE 2: ---------------
+    print("Entering stage 2: Recieving code")
     setColor(6,100,55) #green light
 
 def destroy():
