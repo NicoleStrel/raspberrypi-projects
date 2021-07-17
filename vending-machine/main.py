@@ -72,9 +72,10 @@ def setColor(r_val,g_val,b_val):
 
 
 def checkCoins(count):
-    print (GPIO.input(SENSOR_ECHO))
-    if GPIO.input(SENSOR_ECHO) == 1:
-        print ("count!")
+    long pingTime;
+    float distance;
+    GPIO.output(SENSOR_TRIGGER,GPIO.HIGH)
+    if distance == 100:
         count+=1
 
 
@@ -85,13 +86,8 @@ def loop():
     
     count=0
     
-    # STAGE 1:
+    # ------------STAGE 1: ---------------
     setColor(0,100,100) # red light
-    
-    GPIO.output(SENSOR_TRIGGER,GPIO.HIGH)
-    sleep(0.00001)
-    GPIO.output(SENSOR_TRIGGER, GPIO.LOW)
-    
     
     while stage_1:
         #print ("looping")
