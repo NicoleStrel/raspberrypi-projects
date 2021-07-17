@@ -8,20 +8,33 @@ from PCF8574 import PCF8574_GPIO
 from Adafruit_LCD1602 import Adafruit_CharLCD
 
 import time
+import Keypad
 
 
-# ---COMPONENT SETUP ---
+# -------COMPONENT SETUP------
 
 LED_PINS = [11, 12, 13] #R, G, B
 
-
+#sensor
 SENSOR_TRIGGER = 16
 SENSOR_ECHO = 18
 MAX_DISTANCE = 220 
 timeOut = MAX_DISTANCE*60 
 COIN_DISTANCE = 5 #cm
 
-# ------ LCD SETUP ------
+#keypad
+ROWS = 4 
+COLS = 4
+CODE_1="A619"
+CODE_2="D271"
+keys =  [   '1','2','3','A',    
+            '4','5','6','B',
+            '7','8','9','C',
+            '*','0','#','D'     ]
+rowsPins = [32,36,38,40]
+colsPins = [19,33,35,37]    
+
+#lcd
 PCF8574_address = 0x27 
 PCF8574A_address = 0x3F  
 
@@ -36,10 +49,6 @@ except:
 # Create LCD, passing in MCP GPIO adapter.
 lcd = Adafruit_CharLCD(pin_rs=0, pin_e=2, pins_db=[4,5,6,7], GPIO=mcp)
 
-
-# ---- Logic Variables -----
-CODE_1="A619"
-CODE_2="D271"
 
 def setup():
     global pwmRed,pwmGreen,pwmBlue
@@ -59,8 +68,7 @@ def setup():
     #sensor 
     GPIO.setup(SENSOR_TRIGGER, GPIO.OUT)
     GPIO.setup(SENSOR_ECHO, GPIO.IN)
-    
-    
+     
     #lcd
     mcp.output(3,1)     # turn on LCD backlight
     lcd.begin(16,2)     # set number of LCD lines and columns
@@ -117,13 +125,24 @@ def loop():
         if count == 2:
             stage_1 = False
             print("Stage 1 completed")
-            
-        time.sleep(0.5)
 
     
     # ------------STAGE 2: ---------------
     print("Entering stage 2: Recieving code")
     setColor(6,100,55) #green light
+
+    #set up key pad
+    keypad = Keypad.Keypad(keys,rowsPins,colsPins,ROWS,COLS)
+    keypad.setDebounceTime(50)     
+
+    while stage_2:
+        lcd.setCursor(0,0)
+        lcd.message("Please enter a"+'\n'+"code")
+        
+        key = keypad.getKey()      
+        if(key != keypad.NULL):
+            print ("You Pressed Key : %c "%(key))
+
 
 def destroy():
     lcd.clear()
