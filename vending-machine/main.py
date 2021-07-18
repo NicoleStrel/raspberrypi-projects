@@ -49,6 +49,13 @@ except:
 # Create LCD, passing in MCP GPIO adapter.
 lcd = Adafruit_CharLCD(pin_rs=0, pin_e=2, pins_db=[4,5,6,7], GPIO=mcp)
 
+#step motors
+motorPins1 = (23, 27, 29, 31) 
+motorPins2 = (22, 24, 26, 28)
+CCWStep = (0x01,0x02,0x04,0x08) # power supply order for rotating anticlockwise 
+CWStep = (0x08,0x04,0x02,0x01)  # power supply order for rotating clockwise
+
+
 
 def setup():
     global pwmRed,pwmGreen,pwmBlue
@@ -72,6 +79,13 @@ def setup():
     #lcd
     mcp.output(3,1)     # turn on LCD backlight
     lcd.begin(16,2)     # set number of LCD lines and columns
+
+    #step motors
+    for pin in motorPins1:
+        GPIO.setup(pin,GPIO.OUT)
+    
+    for pin in motorPins2:
+        GPIO.setup(pin,GPIO.OUT)
     
 
 def setColor(r_val,g_val,b_val):  
@@ -100,6 +114,17 @@ def getSonarDistance():
     print('distance: ', distance)
     return distance
 
+def moveOnePeriod(direction,ms, motorPins):    
+    for j in range(0,4,1):     
+        for i in range(0,4,1): 
+            if (direction == 1): #clockwise
+                GPIO.output(motorPins[i],((CCWStep[j] == 1<<i) and GPIO.HIGH or GPIO.LOW))
+            else :             
+                GPIO.output(motorPins[i],((CWStep[j] == 1<<i) and GPIO.HIGH or GPIO.LOW))
+        if(ms<3):     
+            ms = 3
+        time.sleep(ms*0.001)    
+     
 
 def loop():
     stage_1= True #user inserts 50 cents
@@ -167,11 +192,16 @@ def loop():
     while stage_3:
         lcd.setCursor(0,0)
         lcd.message("Thank you for"+'\n'+"purchasing!")
-    
+
+        if (codeEntered == CODE_1):
+            moveOnePeriod(1,3, motorPins1)  
+        else: 
+            moveOnePeriod(1,3, motorPins2) 
 
 
 def destroy():
     lcd.clear()
+    GPIO.output(LED_PINS, GPIO.LOW)
     GPIO.cleanup()
 
 if __name__ == '__main__': 
