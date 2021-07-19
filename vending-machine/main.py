@@ -20,7 +20,7 @@ SENSOR_TRIGGER = 16
 SENSOR_ECHO = 18
 MAX_DISTANCE = 220 
 timeOut = MAX_DISTANCE*60 
-COIN_DISTANCE = 5 #cm
+COIN_DISTANCE = 6.6 #cm
 
 #keypad
 ROWS = 4 
@@ -50,8 +50,8 @@ except:
 lcd = Adafruit_CharLCD(pin_rs=0, pin_e=2, pins_db=[4,5,6,7], GPIO=mcp)
 
 #step motors
-motorPins1 = (23, 27, 29, 31) 
-motorPins2 = (22, 24, 26, 28)
+motorPins1 = (21, 23, 29, 31) 
+motorPins2 = (22, 24, 26, 15)
 CCWStep = (0x01,0x02,0x04,0x08) # power supply order for rotating anticlockwise 
 CWStep = (0x08,0x04,0x02,0x01)  # power supply order for rotating clockwise
 
@@ -84,8 +84,8 @@ def setup():
     for pin in motorPins1:
         GPIO.setup(pin,GPIO.OUT)
     
-    for pin in motorPins2:
-        GPIO.setup(pin,GPIO.OUT)
+    for pin2 in motorPins2:
+        GPIO.setup(pin2,GPIO.OUT)
     
 
 def setColor(r_val,g_val,b_val):  
@@ -114,7 +114,7 @@ def getSonarDistance():
     print('distance: ', distance)
     return distance
 
-def moveOnePeriod(direction,ms, motorPins):    
+def moveOnePeriod(direction,ms, motorPins): 
     for j in range(0,4,1):     
         for i in range(0,4,1): 
             if (direction == 1): #clockwise
@@ -124,7 +124,14 @@ def moveOnePeriod(direction,ms, motorPins):
         if(ms<3):     
             ms = 3
         time.sleep(ms*0.001)    
-     
+
+def moveSteps(steps, motorPins):
+    for i in range(steps):
+        moveOnePeriod(1, 3, motorPins)
+
+def motorStop(motorPins):
+    for i in range(0,4,1):
+        GPIO.output(motorPins[i],GPIO.LOW)
 
 def loop():
     stage_1= True #user inserts 50 cents
@@ -188,16 +195,20 @@ def loop():
     # ------------STAGE 3: ---------------
     print("Entering stage 3: Dispensing")
     lcd.clear()
+    lcd.setCursor(0,0)
+    lcd.message("Thank you for"+'\n'+"purchasing!")
+
+    if (codeEntered == CODE_1):
+        print("Code 1 dispensing")
+        moveSteps(512, motorPins1)
+        motorStop(motorPins1)  
+    else: 
+        print("Code 2 dispensing")
+        moveSteps(512, motorPins2) 
+        motorStop(motorPins2)
     
-    while stage_3:
-        lcd.setCursor(0,0)
-        lcd.message("Thank you for"+'\n'+"purchasing!")
-
-        if (codeEntered == CODE_1):
-            moveOnePeriod(1,3, motorPins1)  
-        else: 
-            moveOnePeriod(1,3, motorPins2) 
-
+    print("done!")
+    destroy()
 
 def destroy():
     lcd.clear()
